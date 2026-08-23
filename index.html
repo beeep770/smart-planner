@@ -13,7 +13,6 @@
         <div class="settings">
             <label>Начало дня:</label>
             <div class="time-input-group">
-                <!-- Теперь это обычное текстовое поле -->
                 <input type="text" id="start-time" value="12:00" placeholder="12:00" maxlength="5">
                 <button type="button" id="set-now-btn" class="quick-time-btn">Сейчас</button>
             </div>
@@ -24,9 +23,10 @@
             <div class="duration-input-group">
                 <input type="number" id="task-duration" placeholder="Минут (напр. 60)">
                 <div class="quick-time-btns">
-                    <button type="button" id="btn-15" class="quick-time-btn">+15м</button>
-                    <button type="button" id="btn-30" class="quick-time-btn">+30м</button>
-                    <button type="button" id="btn-60" class="quick-time-btn">+1ч</button>
+                    <!-- Прямые команды, которые невозможно сломать -->
+                    <button type="button" class="quick-time-btn" onclick="window.addTime(15)">+15м</button>
+                    <button type="button" class="quick-time-btn" onclick="window.addTime(30)">+30м</button>
+                    <button type="button" class="quick-time-btn" onclick="window.addTime(60)">+1ч</button>
                 </div>
             </div>
             <button id="add-task-btn">Добавить</button>
@@ -48,6 +48,7 @@
             </div>
         </div>
     </div>
-    <script src="script.js"></script>
+    <!-- Специально меняем версию, чтобы браузер скачал новый файл -->
+    <script src="script.js?v=3"></script>
 </body>
 </html>

@@ -1,3 +1,11 @@
+// Делаем функцию добавления времени глобальной, чтобы она работала напрямую из HTML
+window.addTime = function(mins) {
+    const input = document.getElementById('task-duration');
+    let currentVal = parseInt(input.value);
+    if (isNaN(currentVal)) currentVal = 0;
+    input.value = currentVal + mins;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const taskNameInput = document.getElementById('task-name');
     const taskDurationInput = document.getElementById('task-duration');
@@ -9,17 +17,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const startTimeInput = document.getElementById('start-time');
     const setNowBtn = document.getElementById('set-now-btn');
 
+    // 1. Загружаем задачи из памяти
     let tasks = JSON.parse(localStorage.getItem('plannerTasks')) || [];
     let scheduledTasks = []; 
     let timerId = null;
 
-    // Восстанавливаем время из памяти
+    // Восстанавливаем время
     const savedTime = localStorage.getItem('plannerStartTime');
     if (savedTime && startTimeInput) {
         startTimeInput.value = savedTime;
     }
 
-    // Умный ввод времени
     if (startTimeInput) {
         startTimeInput.addEventListener('input', (e) => {
             let val = e.target.value.replace(/\D/g, ''); 
@@ -31,12 +39,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Запрос уведомлений
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
     }
 
-    // Кнопка "Сейчас"
     if (setNowBtn) {
         setNowBtn.addEventListener('click', () => {
             const now = new Date();
@@ -45,34 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
             startTimeInput.value = `${hours}:${minutes}`;
             localStorage.setItem('plannerStartTime', startTimeInput.value);
             
-            // Если расписание уже активно, пересчитываем его
-            if (localStorage.getItem('isScheduleGenerated') === 'true') {
-                generateSchedule();
-            }
+            // Если есть задачи, сразу перестраиваем график под новое время
+            if (tasks.length > 0) generateSchedule();
         });
     }
-
-    // Неубиваемая логика кнопок +15, +30, +1ч (ищет по тексту на кнопке)
-    const allQuickBtns = document.querySelectorAll('.quick-time-btn');
-    allQuickBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            let addMins = 0;
-            if (btn.innerText.includes('15')) addMins = 15;
-            else if (btn.innerText.includes('30')) addMins = 30;
-            else if (btn.innerText.includes('1ч')) addMins = 60;
-            else return; // Пропускаем кнопку "Сейчас"
-
-            let currentVal = parseInt(taskDurationInput.value);
-            if (isNaN(currentVal)) currentVal = 0;
-            taskDurationInput.value = currentVal + addMins;
-        });
-    });
 
     function saveTasks() {
         localStorage.setItem('plannerTasks', JSON.stringify(tasks));
     }
 
-    // Отрисовка черновика задач
+    // Отрисовка списка дел (слева)
     function renderTasks() {
         if (!tasksUl) return;
         tasksUl.innerHTML = '';
@@ -88,10 +76,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 tasks.splice(index, 1);
                 saveTasks();
                 renderTasks();
-                // Авто-пересчет графика при удалении
-                if (localStorage.getItem('isScheduleGenerated') === 'true') {
-                    generateSchedule();
-                }
+                
+                // Перерисовываем график при удалении
+                if (tasks.length > 0) generateSchedule();
+                else scheduleUl.innerHTML = '';
             };
 
             li.appendChild(textSpan);
@@ -100,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Добавление задачи
     if (addTaskBtn) {
         addTaskBtn.addEventListener('click', () => {
             const name = taskNameInput.value;
@@ -113,30 +100,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 taskNameInput.value = '';
                 taskDurationInput.value = '';
                 
-                // Авто-добавление в готовый график
-                if (localStorage.getItem('isScheduleGenerated') === 'true') {
-                    generateSchedule();
-                }
+                // Сразу автоматически строим график
+                generateSchedule(); 
             }
         });
     }
 
-    // Генерация готового расписания
+    // Отрисовка готового расписания (справа)
     function generateSchedule() {
         if (!scheduleUl) return;
         scheduleUl.innerHTML = ''; 
         scheduledTasks = []; 
         
-        if (tasks.length === 0) {
-            localStorage.setItem('isScheduleGenerated', 'false');
-            return;
-        }
+        if (tasks.length === 0) return;
 
-        // Запоминаем, что расписание было сгенерировано
-        localStorage.setItem('isScheduleGenerated', 'true');
-
-        let [hours, minutes] = startTimeInput.value.split(':').map(Number);
-        if (isNaN(hours) || isNaN(minutes)) return;
+        // Чиним время, если случайно стерли двоеточие
+        let timeStr = startTimeInput.value || "12:00";
+        if (!timeStr.includes(':')) timeStr += ':00';
+        
+        let [hours, minutes] = timeStr.split(':').map(Number);
+        if (isNaN(hours)) hours = 12;
+        if (isNaN(minutes)) minutes = 0;
 
         let currentTime = new Date();
         currentTime.setHours(hours, minutes, 0, 0);
@@ -161,13 +145,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 tasks.splice(index, 1);
                 saveTasks();
                 renderTasks();
-                generateSchedule(); 
+                if (tasks.length > 0) generateSchedule();
+                else scheduleUl.innerHTML = '';
             };
 
             li.appendChild(contentDiv);
             li.appendChild(deleteBtn);
             scheduleUl.appendChild(li);
             
+            // 10 минут перерыва
             currentTime.setMinutes(currentTime.getMinutes() + 10); 
         });
 
@@ -177,12 +163,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (generateBtn) generateBtn.addEventListener('click', generateSchedule);
 
-    // Кнопка очистки
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             tasks = [];
             scheduledTasks = [];
-            localStorage.setItem('isScheduleGenerated', 'false');
             saveTasks();
             renderTasks();
             scheduleUl.innerHTML = '';
@@ -190,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Логика уведомлений
     function checkTime() {
         let now = new Date();
         scheduledTasks.forEach(task => {
@@ -209,11 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // При загрузке страницы отрисовываем задачи
-    renderTasks();
-    
-    // Если график уже был сгенерирован до обновления страницы — сразу строим его снова!
-    if (localStorage.getItem('isScheduleGenerated') === 'true' && tasks.length > 0) {
-        generateSchedule();
+    // 2. САМОЕ ГЛАВНОЕ: АВТО-ВОССТАНОВЛЕНИЕ ПРИ ОБНОВЛЕНИИ СТРАНИЦЫ
+    renderTasks(); // Рисуем левую колонку
+    if (tasks.length > 0) {
+        generateSchedule(); // Сразу рисуем правую колонку
     }
 });

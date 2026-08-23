@@ -17,7 +17,6 @@ body {
 }
 
 h1, h3 { color: #58a6ff; margin-top: 0; }
-
 .settings { margin-bottom: 20px; }
 
 .time-input-group {
@@ -27,17 +26,12 @@ h1, h3 { color: #58a6ff; margin-top: 0; }
     margin-top: 5px;
 }
 
-/* Увеличиваем поле времени для удобства */
-input[type="time"] {
+#start-time {
     font-size: 18px;
     padding: 8px 12px;
-    cursor: pointer;
-}
-
-/* Делаем иконку часов крупнее (работает в браузерах на базе Chromium) */
-input[type="time"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    transform: scale(1.4);
+    width: 70px;
+    text-align: center;
+    letter-spacing: 1px;
 }
 
 .input-area {
@@ -67,7 +61,6 @@ button {
 
 button:hover { background-color: #2ea043; }
 
-/* Быстрые кнопки времени */
 .duration-input-group {
     display: flex;
     flex-direction: column;
@@ -87,10 +80,7 @@ button:hover { background-color: #2ea043; }
     font-weight: normal;
 }
 
-.quick-time-btn:hover {
-    background-color: #30363d;
-    color: #c9d1d9;
-}
+.quick-time-btn:hover { background-color: #30363d; color: #c9d1d9; }
 
 .action-buttons {
     display: flex;
@@ -120,16 +110,8 @@ li {
     align-items: center;
 }
 
-.task-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.time-badge {
-    color: #58a6ff;
-    font-weight: bold;
-}
+.task-info { display: flex; align-items: center; gap: 10px; }
+.time-badge { color: #58a6ff; font-weight: bold; }
 
 .delete-btn {
     background: none;
@@ -139,8 +121,4 @@ li {
     cursor: pointer;
     padding: 0 5px;
 }
-
-.delete-btn:hover {
-    color: #f85149;
-    background: none;
-}
+.delete-btn:hover { color: #f85149; background: none; }

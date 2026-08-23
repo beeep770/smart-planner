@@ -16,7 +16,7 @@
         </div>
 
         <div class="input-area">
-            <input type="text" id="task-name" placeholder="Например: Сценарий для видео по CS2">
+            <input type="text" id="task-name" placeholder="Например: Сценарий для видео">
             <input type="number" id="task-duration" placeholder="Минут (напр. 60)">
             <button id="add-task-btn">Добавить</button>
         </div>
@@ -25,7 +25,10 @@
             <div class="draft-list">
                 <h3>Список дел:</h3>
                 <ul id="tasks-ul"></ul>
-                <button id="generate-btn">Сгенерировать расписание</button>
+                <div class="action-buttons">
+                    <button id="generate-btn">Сгенерировать расписание</button>
+                    <button id="clear-btn" class="danger-btn">Очистить всё</button>
+                </div>
             </div>
 
             <div class="final-schedule">

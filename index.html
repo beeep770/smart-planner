@@ -5,50 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Day Planner</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>🗓 Мой день</h1>
-        
-        <div class="settings">
-            <label>Начало дня:</label>
-            <div class="time-input-group">
-                <input type="text" id="start-time" value="12:00" placeholder="12:00" maxlength="5">
-                <button type="button" id="set-now-btn" class="quick-time-btn">Сейчас</button>
-            </div>
-        </div>
-
-        <div class="input-area">
-            <input type="text" id="task-name" placeholder="Например: Сценарий для видео">
-            <div class="duration-input-group">
-                <input type="number" id="task-duration" placeholder="Минут (напр. 60)">
-                <div class="quick-time-btns">
-                    <!-- Прямые команды, которые невозможно сломать -->
-                    <button type="button" class="quick-time-btn" onclick="window.addTime(15)">+15м</button>
-                    <button type="button" class="quick-time-btn" onclick="window.addTime(30)">+30м</button>
-                    <button type="button" class="quick-time-btn" onclick="window.addTime(60)">+1ч</button>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-left">
+                <h1 data-i18n="title">🗓 Smart Planner</h1>
+                <div class="time-settings">
+                    <label data-i18n="startLabel">Начало дня:</label>
+                    <input type="text" id="start-time" value="12:00" placeholder="12:00" maxlength="5">
+                    <button type="button" id="set-now-btn" class="btn-secondary" data-i18n="nowBtn">Сейчас</button>
                 </div>
             </div>
-            <button id="add-task-btn">Добавить</button>
-        </div>
+            
+            <div class="top-controls">
+                <button id="lang-toggle" class="icon-btn">EN</button>
+                <button id="theme-toggle" class="icon-btn">☀️</button>
+            </div>
+        </header>
 
-        <div class="lists-container">
-            <div class="draft-list">
-                <h3>Список дел:</h3>
-                <ul id="tasks-ul"></ul>
-                <div class="action-buttons">
-                    <button id="generate-btn">Сгенерировать расписание</button>
-                    <button id="clear-btn" class="danger-btn">Очистить всё</button>
+        <section class="task-creator">
+            <div class="input-group main-input">
+                <input type="text" id="task-name" placeholder="Название задачи" data-i18n-ph="taskNameHolder">
+            </div>
+            
+            <div class="input-group time-input">
+                <input type="number" id="task-duration" placeholder="Минут" data-i18n-ph="minsHolder">
+                <div class="quick-btns">
+                    <button type="button" class="btn-chip" onclick="window.addTime(15)">+15</button>
+                    <button type="button" class="btn-chip" onclick="window.addTime(30)">+30</button>
+                    <button type="button" class="btn-chip" onclick="window.addTime(60)">+1ч</button>
                 </div>
             </div>
+            <button id="add-task-btn" class="btn-primary" data-i18n="addBtn">Добавить</button>
+        </section>
 
-            <div class="final-schedule">
-                <h3>Готовое расписание:</h3>
-                <ul id="schedule-ul"></ul>
+        <section class="dashboard">
+            <div class="panel draft-panel">
+                <div class="panel-header">
+                    <h3 data-i18n="draftTitle">Список дел</h3>
+                    <button id="clear-btn" class="btn-danger-text" data-i18n="clearBtn">Очистить всё</button>
+                </div>
+                <ul id="tasks-ul" class="task-list"></ul>
+                <button id="generate-btn" class="btn-primary full-width" data-i18n="generateBtn">Сгенерировать расписание</button>
             </div>
-        </div>
+
+            <div class="panel schedule-panel">
+                <div class="panel-header">
+                    <h3 data-i18n="readyTitle">Готовое расписание</h3>
+                </div>
+                <ul id="schedule-ul" class="task-list"></ul>
+            </div>
+        </section>
     </div>
-    <!-- Специально меняем версию, чтобы браузер скачал новый файл -->
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>

@@ -6,11 +6,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generate-btn');
     const clearBtn = document.getElementById('clear-btn');
     const scheduleUl = document.getElementById('schedule-ul');
+    
+    // Новые элементы управления временем
     const startTimeInput = document.getElementById('start-time');
     const setNowBtn = document.getElementById('set-now-btn');
-    
-    // Получаем все быстрые кнопки (+15, +30, +1ч)
-    const quickTimeBtns = document.querySelectorAll('.quick-time-btns .quick-time-btn');
+    const btn15 = document.getElementById('btn-15');
+    const btn30 = document.getElementById('btn-30');
+    const btn60 = document.getElementById('btn-60');
 
     let tasks = JSON.parse(localStorage.getItem('plannerTasks')) || [];
     let scheduledTasks = []; 
@@ -19,15 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedTime = localStorage.getItem('plannerStartTime');
     if (savedTime) startTimeInput.value = savedTime;
 
-    startTimeInput.addEventListener('change', () => {
-        localStorage.setItem('plannerStartTime', startTimeInput.value);
+    // Умный ввод времени (автоматически ставит двоеточие)
+    startTimeInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\D/g, ''); // Оставляем только цифры
+        if (val.length > 2) {
+            val = val.substring(0, 2) + ':' + val.substring(2, 4);
+        }
+        e.target.value = val;
+        localStorage.setItem('plannerStartTime', val);
     });
 
     if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
     }
 
-    // Кнопка "Сейчас" для быстрой установки времени
+    // Кнопка "Сейчас"
     setNowBtn.addEventListener('click', () => {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
@@ -36,16 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('plannerStartTime', startTimeInput.value);
     });
 
-    // Логика быстрых кнопок (+15, +30, +60)
-    quickTimeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const addTime = parseInt(btn.getAttribute('data-time'));
-            let currentVal = parseInt(taskDurationInput.value);
-            if (isNaN(currentVal)) currentVal = 0; // Если поле пустое, считаем как 0
-            
-            taskDurationInput.value = currentVal + addTime;
-        });
-    });
+    // Функция для быстрых кнопок минут
+    function addMinutes(mins) {
+        let currentVal = parseInt(taskDurationInput.value);
+        if (isNaN(currentVal)) currentVal = 0;
+        taskDurationInput.value = currentVal + mins;
+    }
+
+    // Привязываем кнопки жестко
+    btn15.addEventListener('click', () => addMinutes(15));
+    btn30.addEventListener('click', () => addMinutes(30));
+    btn60.addEventListener('click', () => addMinutes(60));
 
     function saveTasks() {
         localStorage.setItem('plannerTasks', JSON.stringify(tasks));
@@ -96,6 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tasks.length === 0) return;
 
         let [hours, minutes] = startTimeInput.value.split(':').map(Number);
+        if (isNaN(hours) || isNaN(minutes)) return; // Защита от кривого ввода
+
         let currentTime = new Date();
         currentTime.setHours(hours, minutes, 0, 0);
 

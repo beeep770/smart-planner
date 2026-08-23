@@ -47,6 +47,20 @@ button:hover {
     background-color: #2ea043;
 }
 
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.danger-btn {
+    background-color: #da3633;
+}
+
+.danger-btn:hover {
+    background-color: #f85149;
+}
+
 .lists-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -64,10 +78,27 @@ li {
     padding: 10px;
     border-radius: 6px;
     border: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .time-badge {
     color: #58a6ff;
     font-weight: bold;
     margin-right: 10px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #8b949e;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.delete-btn:hover {
+    color: #f85149;
+    background: none;
 }

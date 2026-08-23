@@ -1,4 +1,33 @@
-// Делаем функцию добавления времени глобальной, чтобы она работала напрямую из HTML
+// Словарь для двух языков
+const translations = {
+    ru: {
+        title: "🗓 Smart Planner",
+        startLabel: "Начало дня:",
+        nowBtn: "Сейчас",
+        taskNameHolder: "Название задачи",
+        minsHolder: "Минут",
+        addBtn: "Добавить",
+        draftTitle: "Список дел",
+        clearBtn: "Очистить всё",
+        generateBtn: "Сгенерировать расписание",
+        readyTitle: "Готовое расписание",
+        notifyTime: "Время для задачи!"
+    },
+    en: {
+        title: "🗓 Smart Planner",
+        startLabel: "Start time:",
+        nowBtn: "Now",
+        taskNameHolder: "Task name",
+        minsHolder: "Mins",
+        addBtn: "Add Task",
+        draftTitle: "Task List",
+        clearBtn: "Clear All",
+        generateBtn: "Generate Schedule",
+        readyTitle: "Schedule",
+        notifyTime: "Time for task!"
+    }
+};
+
 window.addTime = function(mins) {
     const input = document.getElementById('task-duration');
     let currentVal = parseInt(input.value);
@@ -16,24 +45,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const scheduleUl = document.getElementById('schedule-ul');
     const startTimeInput = document.getElementById('start-time');
     const setNowBtn = document.getElementById('set-now-btn');
+    
+    const themeToggle = document.getElementById('theme-toggle');
+    const langToggle = document.getElementById('lang-toggle');
 
-    // 1. Загружаем задачи из памяти
     let tasks = JSON.parse(localStorage.getItem('plannerTasks')) || [];
     let scheduledTasks = []; 
     let timerId = null;
 
-    // Восстанавливаем время
-    const savedTime = localStorage.getItem('plannerStartTime');
-    if (savedTime && startTimeInput) {
-        startTimeInput.value = savedTime;
+    // -- ЛОГИКА ТЕМЫ --
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggle.innerText = '🌙';
     }
+
+    themeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        const isLight = document.body.classList.contains('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        themeToggle.innerText = isLight ? '🌙' : '☀️';
+    });
+
+    // -- ЛОГИКА ЯЗЫКА --
+    let currentLang = localStorage.getItem('lang') || 'ru';
+    
+    function applyLanguage(lang) {
+        // Переводим текст внутри тегов
+        document.querySelectorAll('[data-i18n]').forEach(elem => {
+            const key = elem.getAttribute('data-i18n');
+            if (translations[lang][key]) {
+                elem.innerText = translations[lang][key];
+            }
+        });
+        // Переводим плейсхолдеры в полях ввода
+        document.querySelectorAll('[data-i18n-ph]').forEach(elem => {
+            const key = elem.getAttribute('data-i18n-ph');
+            if (translations[lang][key]) {
+                elem.placeholder = translations[lang][key];
+            }
+        });
+        langToggle.innerText = lang === 'ru' ? 'EN' : 'RU';
+        document.documentElement.lang = lang;
+    }
+
+    applyLanguage(currentLang);
+
+    langToggle.addEventListener('click', () => {
+        currentLang = currentLang === 'ru' ? 'en' : 'ru';
+        localStorage.setItem('lang', currentLang);
+        applyLanguage(currentLang);
+    });
+
+    // -- ОСНОВНОЙ ФУНКЦИОНАЛ ПЛАНИРОВЩИКА --
+    const savedTime = localStorage.getItem('plannerStartTime');
+    if (savedTime && startTimeInput) startTimeInput.value = savedTime;
 
     if (startTimeInput) {
         startTimeInput.addEventListener('input', (e) => {
             let val = e.target.value.replace(/\D/g, ''); 
-            if (val.length > 2) {
-                val = val.substring(0, 2) + ':' + val.substring(2, 4);
-            }
+            if (val.length > 2) val = val.substring(0, 2) + ':' + val.substring(2, 4);
             e.target.value = val;
             localStorage.setItem('plannerStartTime', val);
         });
@@ -50,24 +121,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const minutes = String(now.getMinutes()).padStart(2, '0');
             startTimeInput.value = `${hours}:${minutes}`;
             localStorage.setItem('plannerStartTime', startTimeInput.value);
-            
-            // Если есть задачи, сразу перестраиваем график под новое время
             if (tasks.length > 0) generateSchedule();
         });
     }
 
-    function saveTasks() {
-        localStorage.setItem('plannerTasks', JSON.stringify(tasks));
-    }
+    function saveTasks() { localStorage.setItem('plannerTasks', JSON.stringify(tasks)); }
 
-    // Отрисовка списка дел (слева)
     function renderTasks() {
         if (!tasksUl) return;
         tasksUl.innerHTML = '';
         tasks.forEach((task, index) => {
             const li = document.createElement('li');
             const textSpan = document.createElement('span');
-            textSpan.textContent = `${task.name} (${task.duration} мин)`;
+            textSpan.textContent = `${task.name} (${task.duration} ${currentLang === 'ru' ? 'мин' : 'm'})`;
             
             const deleteBtn = document.createElement('button');
             deleteBtn.innerHTML = '✖';
@@ -76,12 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 tasks.splice(index, 1);
                 saveTasks();
                 renderTasks();
-                
-                // Перерисовываем график при удалении
                 if (tasks.length > 0) generateSchedule();
                 else scheduleUl.innerHTML = '';
             };
-
             li.appendChild(textSpan);
             li.appendChild(deleteBtn);
             tasksUl.appendChild(li);
@@ -92,29 +155,23 @@ document.addEventListener('DOMContentLoaded', () => {
         addTaskBtn.addEventListener('click', () => {
             const name = taskNameInput.value;
             const duration = parseInt(taskDurationInput.value);
-
             if (name && duration) {
                 tasks.push({ name, duration });
                 saveTasks();
                 renderTasks();
                 taskNameInput.value = '';
                 taskDurationInput.value = '';
-                
-                // Сразу автоматически строим график
                 generateSchedule(); 
             }
         });
     }
 
-    // Отрисовка готового расписания (справа)
     function generateSchedule() {
         if (!scheduleUl) return;
         scheduleUl.innerHTML = ''; 
         scheduledTasks = []; 
-        
         if (tasks.length === 0) return;
 
-        // Чиним время, если случайно стерли двоеточие
         let timeStr = startTimeInput.value || "12:00";
         if (!timeStr.includes(':')) timeStr += ':00';
         
@@ -152,8 +209,6 @@ document.addEventListener('DOMContentLoaded', () => {
             li.appendChild(contentDiv);
             li.appendChild(deleteBtn);
             scheduleUl.appendChild(li);
-            
-            // 10 минут перерыва
             currentTime.setMinutes(currentTime.getMinutes() + 10); 
         });
 
@@ -179,7 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
         scheduledTasks.forEach(task => {
             if (!task.notified && now.getHours() === task.time.getHours() && now.getMinutes() === task.time.getMinutes()) {
                 task.notified = true;
-                sendNotification("Время для задачи!", `Пора начать: ${task.name}`);
+                const notifyMsg = translations[currentLang].notifyTime;
+                sendNotification("Smart Planner", `${notifyMsg} ${task.name}`);
             }
         });
     }
@@ -192,9 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 2. САМОЕ ГЛАВНОЕ: АВТО-ВОССТАНОВЛЕНИЕ ПРИ ОБНОВЛЕНИИ СТРАНИЦЫ
-    renderTasks(); // Рисуем левую колонку
+    renderTasks(); 
     if (tasks.length > 0) {
-        generateSchedule(); // Сразу рисуем правую колонку
+        generateSchedule(); 
     }
 });

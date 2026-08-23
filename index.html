@@ -12,7 +12,10 @@
         
         <div class="settings">
             <label>Начало дня:</label>
-            <input type="time" id="start-time" value="12:00">
+            <div class="time-input-group">
+                <input type="time" id="start-time" value="12:00">
+                <button type="button" id="set-now-btn" class="quick-time-btn">Сейчас</button>
+            </div>
         </div>
 
         <div class="input-area">
@@ -20,9 +23,9 @@
             <div class="duration-input-group">
                 <input type="number" id="task-duration" placeholder="Минут (напр. 60)">
                 <div class="quick-time-btns">
-                    <button type="button" class="quick-btn" data-time="15">+15м</button>
-                    <button type="button" class="quick-btn" data-time="30">+30м</button>
-                    <button type="button" class="quick-btn" data-time="60">+1ч</button>
+                    <button type="button" class="quick-time-btn" data-time="15">+15м</button>
+                    <button type="button" class="quick-time-btn" data-time="30">+30м</button>
+                    <button type="button" class="quick-time-btn" data-time="60">+1ч</button>
                 </div>
             </div>
             <button id="add-task-btn">Добавить</button>

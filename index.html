@@ -17,7 +17,14 @@
 
         <div class="input-area">
             <input type="text" id="task-name" placeholder="Например: Сценарий для видео">
-            <input type="number" id="task-duration" placeholder="Минут (напр. 60)">
+            <div class="duration-input-group">
+                <input type="number" id="task-duration" placeholder="Минут (напр. 60)">
+                <div class="quick-time-btns">
+                    <button type="button" class="quick-btn" data-time="15">+15м</button>
+                    <button type="button" class="quick-btn" data-time="30">+30м</button>
+                    <button type="button" class="quick-btn" data-time="60">+1ч</button>
+                </div>
+            </div>
             <button id="add-task-btn">Добавить</button>
         </div>
 

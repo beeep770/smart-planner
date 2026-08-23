@@ -16,12 +16,31 @@ body {
     max-width: 800px;
 }
 
-h1, h3 {
-    color: #58a6ff;
-    margin-top: 0;
+h1, h3 { color: #58a6ff; margin-top: 0; }
+
+.settings { margin-bottom: 20px; }
+
+.time-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 5px;
 }
 
-.settings, .input-area {
+/* Увеличиваем поле времени для удобства */
+input[type="time"] {
+    font-size: 18px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+/* Делаем иконку часов крупнее (работает в браузерах на базе Chromium) */
+input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    transform: scale(1.4);
+}
+
+.input-area {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
@@ -60,14 +79,15 @@ button:hover { background-color: #2ea043; }
     gap: 5px;
 }
 
-.quick-btn {
-    padding: 4px 8px;
-    font-size: 12px;
+.quick-time-btn {
+    padding: 6px 10px;
+    font-size: 13px;
     background-color: #21262d;
     color: #8b949e;
+    font-weight: normal;
 }
 
-.quick-btn:hover {
+.quick-time-btn:hover {
     background-color: #30363d;
     color: #c9d1d9;
 }
@@ -87,11 +107,7 @@ button:hover { background-color: #2ea043; }
     gap: 20px;
 }
 
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
+ul { list-style: none; padding: 0; margin: 0; }
 
 li {
     background-color: #21262d;
@@ -100,7 +116,7 @@ li {
     border-radius: 6px;
     border: 1px solid #30363d;
     display: flex;
-    justify-content: space-between; /* Раздвигает текст и крестик по краям */
+    justify-content: space-between;
     align-items: center;
 }
 

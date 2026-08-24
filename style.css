@@ -12,7 +12,7 @@
     --border-radius: 12px;
 }
 
-/* Настройки светлой темы */
+
 body.light-theme {
     --bg-main: #f2f3f5;
     --bg-card: #ffffff;
@@ -50,7 +50,7 @@ body {
     transition: background-color 0.3s;
 }
 
-/* Увеличили ширину контейнера для ПК */
+
 .app-container { 
     width: 100%; 
     max-width: 1200px; 
@@ -142,7 +142,7 @@ button:active { transform: scale(0.97); }
 
 .dashboard { 
     display: grid; 
-    grid-template-columns: 1fr 1fr; /* Две колонки для ПК */
+    grid-template-columns: 1fr 1fr; 
     gap: 20px; 
 }
 
@@ -189,7 +189,7 @@ button:active { transform: scale(0.97); }
 .delete-btn { background: none; color: var(--text-muted); font-size: 16px; padding: 4px 8px; }
 .delete-btn:hover { color: var(--danger); transform: scale(1.1); }
 
-/* Адаптация под телефоны (теперь срабатывает только на очень узких экранах < 600px) */
+
 @media (max-width: 600px) {
     .app-header { flex-direction: column; align-items: stretch; gap: 15px; }
     .header-left { align-items: center; }

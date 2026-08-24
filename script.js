@@ -20,7 +20,7 @@ window.addTime = function(mins) {
     input.value = currentVal + mins;
 };
 
-// РЕГИСТРАЦИЯ SERVICE WORKER (для мобильных уведомлений)
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(reg => {
         console.log('Service Worker зарегистрирован!');
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let scheduledTasks = []; 
     let timerId = null;
 
-    // -- ТЕМА --
+    
     let currentTheme = localStorage.getItem('theme') || 'dark';
     if (currentTheme === 'light') {
         document.body.classList.add('light-theme');
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerText = isLight ? '🌙' : '☀️';
     });
 
-    // -- ЯЗЫК --
+    
     let currentLang = localStorage.getItem('lang') || 'ru';
     
     function applyLanguage(lang) {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLanguage(currentLang);
     });
 
-    // -- ПЛАНИРОВЩИК --
+    
     const savedTime = localStorage.getItem('plannerStartTime');
     if (savedTime && startTimeInput) startTimeInput.value = savedTime;
 
@@ -228,12 +228,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // -- ИСПРАВЛЕННАЯ ФУНКЦИЯ УВЕДОМЛЕНИЙ --
+    -
     function sendNotification(title, body) {
         if (!("Notification" in window)) return;
 
         if (Notification.permission === "granted") {
-            // Если мы на телефоне, обязательно нужен Service Worker
+            
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(registration => {
                     registration.showNotification(title, {
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 });
             } else {
-                // Запасной вариант для старых браузеров на ПК
+                
                 new Notification(title, { body: body });
             }
         } else if (Notification.permission !== "denied") {

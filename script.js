@@ -71,14 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLang = localStorage.getItem('lang') || 'ru';
     
     function applyLanguage(lang) {
-        // Переводим текст внутри тегов
         document.querySelectorAll('[data-i18n]').forEach(elem => {
             const key = elem.getAttribute('data-i18n');
             if (translations[lang][key]) {
                 elem.innerText = translations[lang][key];
             }
         });
-        // Переводим плейсхолдеры в полях ввода
         document.querySelectorAll('[data-i18n-ph]').forEach(elem => {
             const key = elem.getAttribute('data-i18n-ph');
             if (translations[lang][key]) {
@@ -97,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLanguage(currentLang);
     });
 
-    // -- ОСНОВНОЙ ФУНКЦИОНАЛ ПЛАНИРОВЩИКА --
+    // -- ФУНКЦИОНАЛ ПЛАНИРОВЩИКА --
     const savedTime = localStorage.getItem('plannerStartTime');
     if (savedTime && startTimeInput) startTimeInput.value = savedTime;
 
@@ -110,8 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission();
+    // ЗАПРОС РАЗРЕШЕНИЯ НА УВЕДОМЛЕНИЯ (включая мобильные браузеры)
+    if ("Notification" in window) {
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
     }
 
     if (setNowBtn) {
@@ -219,16 +220,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateBtn) generateBtn.addEventListener('click', generateSchedule);
 
     if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
+        clearBtn.addEventListener('clear', () => {}); // заглушка
+        clearBtn.onclick = () => {
             tasks = [];
             scheduledTasks = [];
             saveTasks();
             renderTasks();
             scheduleUl.innerHTML = '';
             if (timerId) clearInterval(timerId);
-        });
+        };
     }
 
+    // Проверка времени для отправки пуша на телефон
     function checkTime() {
         let now = new Date();
         scheduledTasks.forEach(task => {
@@ -240,11 +243,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Функция вызова системного уведомления (на телефоне вылетит шторка)
     function sendNotification(title, body) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification(title, { body: body });
-        } else {
-            alert(`${title}\n${body}`);
+        if (!("Notification" in window)) return;
+
+        if (Notification.permission === "granted") {
+            try {
+                // Пытаемся отправить красивый мобильный пуш
+                navigator.serviceWorker.ready.then(registration => {
+                    registration.showNotification(title, {
+                        body: body,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png',
+                        vibrate: [200, 100, 200] // Телефон завибрирует при получении!
+                    });
+                }).catch(() => {
+                    // Запасной вариант, если сервис-воркер не подключен
+                    new Notification(title, { body: body });
+                });
+            } catch (e) {
+                new Notification(title, { body: body });
+            }
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    new Notification(title, { body: body });
+                }
+            });
         }
     }
 

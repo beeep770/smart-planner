@@ -3,13 +3,15 @@ const translations = {
         title: "🗓 Smart Planner", startLabel: "Начало дня:", nowBtn: "Сейчас",
         taskNameHolder: "Название задачи", minsHolder: "Минут", addBtn: "Добавить",
         draftTitle: "Список дел", clearBtn: "Очистить всё", generateBtn: "Сгенерировать расписание",
-        readyTitle: "Готовое расписание", notifyTime: "Время для задачи!"
+        readyTitle: "Готовое расписание", notifyTime: "Время для задачи!",
+        testPush: "Тест уведомлений работает!"
     },
     en: {
         title: "🗓 Smart Planner", startLabel: "Start time:", nowBtn: "Now",
         taskNameHolder: "Task name", minsHolder: "Mins", addBtn: "Add Task",
         draftTitle: "Task List", clearBtn: "Clear All", generateBtn: "Generate Schedule",
-        readyTitle: "Schedule", notifyTime: "Time for task!"
+        readyTitle: "Schedule", notifyTime: "Time for task!",
+        testPush: "Test notification works!"
     }
 };
 
@@ -20,13 +22,8 @@ window.addTime = function(mins) {
     input.value = currentVal + mins;
 };
 
-
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(reg => {
-        console.log('Service Worker зарегистрирован!');
-    }).catch(err => {
-        console.error('Ошибка Service Worker:', err);
-    });
+    navigator.serviceWorker.register('sw.js').catch(err => console.error('Ошибка Service Worker:', err));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -42,12 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const themeToggle = document.getElementById('theme-toggle');
     const langToggle = document.getElementById('lang-toggle');
+    const testNotifyBtn = document.getElementById('test-notify-btn');
 
     let tasks = JSON.parse(localStorage.getItem('plannerTasks')) || [];
     let scheduledTasks = []; 
     let timerId = null;
 
-    
+    // -- ТЕМА --
     let currentTheme = localStorage.getItem('theme') || 'dark';
     if (currentTheme === 'light') {
         document.body.classList.add('light-theme');
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerText = isLight ? '🌙' : '☀️';
     });
 
-    
+    // -- ЯЗЫК --
     let currentLang = localStorage.getItem('lang') || 'ru';
     
     function applyLanguage(lang) {
@@ -85,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLanguage(currentLang);
     });
 
-    
+    // -- ПЛАНИРОВЩИК --
     const savedTime = localStorage.getItem('plannerStartTime');
     if (savedTime && startTimeInput) startTimeInput.value = savedTime;
 
@@ -96,10 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = val;
             localStorage.setItem('plannerStartTime', val);
         });
-    }
-
-    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
     }
 
     if (setNowBtn) {
@@ -228,23 +222,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    -
+    // ТЕСТОВАЯ КНОПКА
+    if (testNotifyBtn) {
+        testNotifyBtn.addEventListener('click', () => {
+            sendNotification("Smart Planner", translations[currentLang].testPush);
+        });
+    }
+
+    // ФУНКЦИЯ УВЕДОМЛЕНИЙ
     function sendNotification(title, body) {
-        if (!("Notification" in window)) return;
+        if (!("Notification" in window)) {
+            alert("Ваш браузер не поддерживает уведомления.");
+            return;
+        }
 
         if (Notification.permission === "granted") {
-            
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(registration => {
                     registration.showNotification(title, {
                         body: body,
                         icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png',
-                        vibrate: [200, 100, 200, 100, 200], // Двойная вибрация
-                        requireInteraction: true // Чтобы пуш не исчезал сам по себе
+                        vibrate: [200, 100, 200, 100, 200]
                     });
-                });
+                }).catch(() => new Notification(title, { body: body }));
             } else {
-                
                 new Notification(title, { body: body });
             }
         } else if (Notification.permission !== "denied") {

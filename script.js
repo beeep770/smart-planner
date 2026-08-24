@@ -1,30 +1,15 @@
-// Словарь для двух языков
 const translations = {
     ru: {
-        title: "🗓 Smart Planner",
-        startLabel: "Начало дня:",
-        nowBtn: "Сейчас",
-        taskNameHolder: "Название задачи",
-        minsHolder: "Минут",
-        addBtn: "Добавить",
-        draftTitle: "Список дел",
-        clearBtn: "Очистить всё",
-        generateBtn: "Сгенерировать расписание",
-        readyTitle: "Готовое расписание",
-        notifyTime: "Время для задачи!"
+        title: "🗓 Smart Planner", startLabel: "Начало дня:", nowBtn: "Сейчас",
+        taskNameHolder: "Название задачи", minsHolder: "Минут", addBtn: "Добавить",
+        draftTitle: "Список дел", clearBtn: "Очистить всё", generateBtn: "Сгенерировать расписание",
+        readyTitle: "Готовое расписание", notifyTime: "Время для задачи!"
     },
     en: {
-        title: "🗓 Smart Planner",
-        startLabel: "Start time:",
-        nowBtn: "Now",
-        taskNameHolder: "Task name",
-        minsHolder: "Mins",
-        addBtn: "Add Task",
-        draftTitle: "Task List",
-        clearBtn: "Clear All",
-        generateBtn: "Generate Schedule",
-        readyTitle: "Schedule",
-        notifyTime: "Time for task!"
+        title: "🗓 Smart Planner", startLabel: "Start time:", nowBtn: "Now",
+        taskNameHolder: "Task name", minsHolder: "Mins", addBtn: "Add Task",
+        draftTitle: "Task List", clearBtn: "Clear All", generateBtn: "Generate Schedule",
+        readyTitle: "Schedule", notifyTime: "Time for task!"
     }
 };
 
@@ -34,6 +19,15 @@ window.addTime = function(mins) {
     if (isNaN(currentVal)) currentVal = 0;
     input.value = currentVal + mins;
 };
+
+// РЕГИСТРАЦИЯ SERVICE WORKER (для мобильных уведомлений)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+        console.log('Service Worker зарегистрирован!');
+    }).catch(err => {
+        console.error('Ошибка Service Worker:', err);
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const taskNameInput = document.getElementById('task-name');
@@ -53,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let scheduledTasks = []; 
     let timerId = null;
 
-    // -- ЛОГИКА ТЕМЫ --
+    // -- ТЕМА --
     let currentTheme = localStorage.getItem('theme') || 'dark';
     if (currentTheme === 'light') {
         document.body.classList.add('light-theme');
@@ -67,21 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.innerText = isLight ? '🌙' : '☀️';
     });
 
-    // -- ЛОГИКА ЯЗЫКА --
+    // -- ЯЗЫК --
     let currentLang = localStorage.getItem('lang') || 'ru';
     
     function applyLanguage(lang) {
         document.querySelectorAll('[data-i18n]').forEach(elem => {
             const key = elem.getAttribute('data-i18n');
-            if (translations[lang][key]) {
-                elem.innerText = translations[lang][key];
-            }
+            if (translations[lang][key]) elem.innerText = translations[lang][key];
         });
         document.querySelectorAll('[data-i18n-ph]').forEach(elem => {
             const key = elem.getAttribute('data-i18n-ph');
-            if (translations[lang][key]) {
-                elem.placeholder = translations[lang][key];
-            }
+            if (translations[lang][key]) elem.placeholder = translations[lang][key];
         });
         langToggle.innerText = lang === 'ru' ? 'EN' : 'RU';
         document.documentElement.lang = lang;
@@ -95,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyLanguage(currentLang);
     });
 
-    // -- ФУНКЦИОНАЛ ПЛАНИРОВЩИКА --
+    // -- ПЛАНИРОВЩИК --
     const savedTime = localStorage.getItem('plannerStartTime');
     if (savedTime && startTimeInput) startTimeInput.value = savedTime;
 
@@ -108,11 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ЗАПРОС РАЗРЕШЕНИЯ НА УВЕДОМЛЕНИЯ (включая мобильные браузеры)
-    if ("Notification" in window) {
-        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
+    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
     }
 
     if (setNowBtn) {
@@ -220,7 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (generateBtn) generateBtn.addEventListener('click', generateSchedule);
 
     if (clearBtn) {
-        clearBtn.addEventListener('clear', () => {}); // заглушка
         clearBtn.onclick = () => {
             tasks = [];
             scheduledTasks = [];
@@ -231,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Проверка времени для отправки пуша на телефон
     function checkTime() {
         let now = new Date();
         scheduledTasks.forEach(task => {
@@ -243,37 +228,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Функция вызова системного уведомления (на телефоне вылетит шторка)
+    // -- ИСПРАВЛЕННАЯ ФУНКЦИЯ УВЕДОМЛЕНИЙ --
     function sendNotification(title, body) {
         if (!("Notification" in window)) return;
 
         if (Notification.permission === "granted") {
-            try {
-                // Пытаемся отправить красивый мобильный пуш
+            // Если мы на телефоне, обязательно нужен Service Worker
+            if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.ready.then(registration => {
                     registration.showNotification(title, {
                         body: body,
                         icon: 'https://cdn-icons-png.flaticon.com/512/3209/3209265.png',
-                        vibrate: [200, 100, 200] // Телефон завибрирует при получении!
+                        vibrate: [200, 100, 200, 100, 200], // Двойная вибрация
+                        requireInteraction: true // Чтобы пуш не исчезал сам по себе
                     });
-                }).catch(() => {
-                    // Запасной вариант, если сервис-воркер не подключен
-                    new Notification(title, { body: body });
                 });
-            } catch (e) {
+            } else {
+                // Запасной вариант для старых браузеров на ПК
                 new Notification(title, { body: body });
             }
         } else if (Notification.permission !== "denied") {
             Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    new Notification(title, { body: body });
-                }
+                if (permission === "granted") sendNotification(title, body);
             });
         }
     }
 
     renderTasks(); 
-    if (tasks.length > 0) {
-        generateSchedule(); 
-    }
+    if (tasks.length > 0) generateSchedule(); 
 });
